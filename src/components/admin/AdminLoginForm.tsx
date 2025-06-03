@@ -36,6 +36,7 @@ const AdminLoginForm: React.FC = () => {
     } catch (err: any) {
       if (err.message === 'Admin not initialized') {
         setIsInitMode(true);
+      }
     } catch (error) {
       setError(isMFARequired ? 'Invalid verification code' : 'Invalid password');
     } finally {
