@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 import InviteCodeManager from '../components/admin/InviteCodeManager';
 
 const AdminPage: React.FC = () => {
