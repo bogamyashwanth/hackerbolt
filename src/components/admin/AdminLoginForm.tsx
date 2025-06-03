@@ -18,17 +18,18 @@ const AdminLoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     if (!password.trim()) {
       setError('Password is required');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       if (isMFARequired) {
         await verifyMFA(mfaCode);
+        navigate('/admin');
       } else {
         if (isInitMode) {
           if (password.length < 8) {
@@ -42,9 +43,9 @@ const AdminLoginForm: React.FC = () => {
           return;
         } else {
           await loginAdmin(password);
+          navigate('/admin');
         }
       }
-      navigate('/admin');
     } catch (error: any) {
       const errorMsg = error?.message || 'An error occurred';
       if (errorMsg === 'Admin not initialized') {

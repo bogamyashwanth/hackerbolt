@@ -193,6 +193,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const createSession = async () => {
     try {
+      // Get admin user ID
       const { data: user } = await supabase
         .from('users')
         .select('id')
@@ -200,7 +201,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .single();
 
       if (!user) throw new Error('Admin user not found');
-
+      
+      // Create admin session
       const { data: session, error } = await supabase.rpc('create_admin_session', {
         p_user_id: user.id,
         p_ip_address: await getClientIP(),
@@ -209,11 +211,11 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (error) throw error;
 
+      // Update state and store session
       setSessionId(session.id);
       localStorage.setItem('adminSessionToken', session.token);
       setIsAdminAuthenticated(true);
       setIsMFARequired(false);
-      navigate('/admin');
     } catch (error) {
       console.error('Session creation failed:', error);
       throw error;
