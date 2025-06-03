@@ -75,12 +75,20 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const loginAdmin = async (password: string) => {
     try {
-      const { data: settings } = await supabase
+      const { data: settings, error } = await supabase
         .from('admin_auth_settings')
         .select('*')
         .single();
 
-      if (!settings) {
+      // Handle the case when no admin settings exist
+      if (error) {
+        if (error.code === 'PGRST116' && error.details === 'The result contains 0 rows') {
+          throw new Error('Admin not initialized');
+        }
+        throw error;
+      }
+
+      if (!settings || !settings.password_hash) {
         throw new Error('Admin not initialized');
       }
 
