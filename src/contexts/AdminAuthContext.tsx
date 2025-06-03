@@ -14,6 +14,7 @@ interface AdminAuthContextType {
   verifySecurityKey: () => Promise<void>;
   logoutAdmin: () => void;
 }
+const IP_API_URL = 'https://api.ipify.org?format=json';
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
@@ -22,6 +23,19 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isMFARequired, setIsMFARequired] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const getClientIP = async (): Promise<string> => {
+    try {
+      const response = await fetch(IP_API_URL);
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.warn('Failed to get client IP:', error);
+      // Return a default IP if the API call fails
+      // This ensures the application continues to work
+      return '127.0.0.1';
+    }
+  };
 
   useEffect(() => {
     // Check session validity periodically
