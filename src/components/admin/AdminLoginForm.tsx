@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { Lock, AlertCircle, Key, ShieldAlert } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 const AdminLoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [adminEmail] = useState('yashwanthbogam4@gmail.com');
   
   const [isInitMode, setIsInitMode] = useState(false);
   const { loginAdmin, verifyMFA, verifySecurityKey, isMFARequired, initializeAdmin } = useAdminAuth();
@@ -78,6 +80,12 @@ const AdminLoginForm: React.FC = () => {
           <span>{error}</span>
         </div>
       )}
+      
+      <div className="text-center mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Logging in as: <span className="font-medium">{adminEmail}</span>
+        </p>
+      </div>
       
       {isInitMode && (
         <div className="bg-warning-50 dark:bg-navy-800 text-warning-600 p-3 rounded-md flex items-start mb-4">

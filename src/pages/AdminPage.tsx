@@ -5,21 +5,21 @@ import InviteCodeManager from '../components/admin/InviteCodeManager';
 
 const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { isAdminAuthenticated } = useAdminAuth();
   const [isAdmin, setIsAdmin] = React.useState(false);
 
   React.useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!user) {
+      if (!isAdminAuthenticated) {
         navigate('/admin/login');
         return;
       }
 
       try {
         const { data, error } = await supabase
-          .from('admin_users')
-          .select('user_id')
-          .eq('user_id', user.id)
+          .from('users')
+          .select('id')
+          .eq('email', 'yashwanthbogam4@gmail.com')
           .single();
 
         if (error) throw error;
@@ -31,7 +31,7 @@ const AdminPage: React.FC = () => {
     };
 
     checkAdminStatus();
-  }, [user, navigate]);
+  }, [isAdminAuthenticated, navigate]);
 
   if (!isAdmin) {
     return null;
