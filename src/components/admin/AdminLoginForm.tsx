@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
-import { Lock, AlertCircle, Key } from 'lucide-react';
+import { Lock, AlertCircle, Key, ShieldAlert } from 'lucide-react';
 
 const AdminLoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -9,7 +9,8 @@ const AdminLoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { loginAdmin, verifyMFA, verifySecurityKey, isMFARequired } = useAdminAuth();
+  const [isInitMode, setIsInitMode] = useState(false);
+  const { loginAdmin, verifyMFA, verifySecurityKey, isMFARequired, initializeAdmin } = useAdminAuth();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,9 +22,20 @@ const AdminLoginForm: React.FC = () => {
       if (isMFARequired) {
         await verifyMFA(mfaCode);
       } else {
-        await loginAdmin(password);
+        if (isInitMode) {
+          await initializeAdmin(password);
+          setError('Admin initialized successfully. Please log in.');
+          setIsInitMode(false);
+          setPassword('');
+          return;
+        } else {
+          await loginAdmin(password);
+        }
       }
       navigate('/admin');
+    } catch (err: any) {
+      if (err.message === 'Admin not initialized') {
+        setIsInitMode(true);
     } catch (error) {
       setError(isMFARequired ? 'Invalid verification code' : 'Invalid password');
     } finally {
@@ -51,6 +63,15 @@ const AdminLoginForm: React.FC = () => {
         <div className="bg-error-50 dark:bg-navy-800 text-error-500 p-3 rounded-md flex items-start">
           <AlertCircle size={18} className="flex-shrink-0 mr-2 mt-0.5" />
           <span>{error}</span>
+        </div>
+      )}
+      
+      {isInitMode && (
+        <div className="bg-warning-50 dark:bg-navy-800 text-warning-600 p-3 rounded-md flex items-start mb-4">
+          <ShieldAlert size={18} className="flex-shrink-0 mr-2 mt-0.5" />
+          <span>
+            No admin account found. Please set up the initial admin password.
+          </span>
         </div>
       )}
       
@@ -107,7 +128,9 @@ const AdminLoginForm: React.FC = () => {
         >
           {isSubmitting 
             ? (isMFARequired ? 'Verifying...' : 'Signing in...') 
-            : (isMFARequired ? 'Verify Code' : 'Sign in')}
+            : (isMFARequired 
+                ? 'Verify Code' 
+                : (isInitMode ? 'Initialize Admin' : 'Sign in'))}
         </button>
 
         <button
