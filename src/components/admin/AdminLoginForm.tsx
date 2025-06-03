@@ -16,6 +16,12 @@ const AdminLoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
+    if (!password.trim()) {
+      setError('Password is required');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -23,6 +29,10 @@ const AdminLoginForm: React.FC = () => {
         await verifyMFA(mfaCode);
       } else {
         if (isInitMode) {
+          if (password.length < 8) {
+            setError('Password must be at least 8 characters long');
+            return;
+          }
           await initializeAdmin(password);
           setError('Admin initialized successfully. Please log in.');
           setIsInitMode(false);
@@ -34,10 +44,12 @@ const AdminLoginForm: React.FC = () => {
       }
       navigate('/admin');
     } catch (error: any) {
-      if (error.message === 'Admin not initialized') {
+      const errorMsg = error?.message || 'An error occurred';
+      if (errorMsg === 'Admin not initialized') {
         setIsInitMode(true);
+        setError('No admin account found. Please set up the initial admin password.');
       } else {
-        setError(isMFARequired ? 'Invalid verification code' : 'Invalid password');
+        setError(errorMsg);
       }
     } finally {
       setIsSubmitting(false);

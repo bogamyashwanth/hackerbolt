@@ -67,9 +67,9 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const initializeAdmin = async (password: string) => {
     try {
-      // Initialize admin auth settings with just the password
-      const { error } = await supabase.rpc('init_admin_auth', {
-        p_password: password // The RPC function will handle hashing internally
+      const { error } = await supabase.rpc('init_admin_auth_rpc', {
+        p_email: 'yashwanthbogam4@gmail.com',
+        p_password: password
       });
 
       if (error) throw error;
@@ -81,32 +81,39 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const loginAdmin = async (password: string) => {
     try {
-      const { data: settings, error } = await supabase
-        .from('admin_auth_settings')
-        .select('*')
-        .single();
+      const { data: status, error: statusError } = await supabase
+        .rpc('get_admin_auth_status', {
+          p_email: 'yashwanthbogam4@gmail.com'
+        });
 
-      // Handle the case when no admin settings exist
-      if (error) {
-        if (error.code === 'PGRST116' && error.details === 'The result contains 0 rows') {
-          throw new Error('Admin not initialized');
-        }
-        throw error;
-      }
+      if (statusError) throw statusError;
 
-      if (!settings || !settings.password_hash) {
+      if (!status.initialized) {
         throw new Error('Admin not initialized');
       }
 
       // Verify password
-      if (!await verifyPassword(password, settings.password_hash)) {
+      const { data: isValid, error: verifyError } = await supabase
+        .rpc('verify_admin_password_rpc', {
+          p_email: 'yashwanthbogam4@gmail.com',
+          p_password: password
+        });
+
+      if (verifyError) throw verifyError;
+      if (!isValid) {
         throw new Error('Invalid password');
       }
 
-      if (settings.mfa_enabled) {
+      if (status.mfa_required) {
         setIsMFARequired(true);
         return;
-      } 
+      }
+
+      if (status.password_change_required) {
+        // Handle password change requirement
+        navigate('/admin/change-password');
+        return;
+      }
 
       await createSession();
     } catch (error) {
