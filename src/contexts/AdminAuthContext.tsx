@@ -53,17 +53,9 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const initializeAdmin = async (password: string) => {
     try {
-      const { data: adminUser, error: adminError } = await supabase
-        .from('admin_users')
-        .select('user_id')
-        .single();
-
-      if (adminError) throw adminError;
-
-      // Initialize admin auth settings
+      // Initialize admin auth settings with just the password
       const { error } = await supabase.rpc('init_admin_auth', {
-        p_user_id: adminUser.user_id,
-        p_password_hash: await hashPassword(password)
+        p_password: password // The RPC function will handle hashing internally
       });
 
       if (error) throw error;
@@ -100,7 +92,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (settings.mfa_enabled) {
         setIsMFARequired(true);
         return;
-      }
+      } 
 
       await createSession();
     } catch (error) {
