@@ -33,12 +33,12 @@ const AdminLoginForm: React.FC = () => {
         }
       }
       navigate('/admin');
-    } catch (err: any) {
-      if (err.message === 'Admin not initialized') {
+    } catch (error: any) {
+      if (error.message === 'Admin not initialized') {
         setIsInitMode(true);
+      } else {
+        setError(isMFARequired ? 'Invalid verification code' : 'Invalid password');
       }
-    } catch (error) {
-      setError(isMFARequired ? 'Invalid verification code' : 'Invalid password');
     } finally {
       setIsSubmitting(false);
     }
